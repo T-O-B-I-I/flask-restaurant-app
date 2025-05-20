@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Orders - My Restaurant{% endblock %}
+
+{% block content %}
+<h1>Orders</h1>
+
+<div id="notification" style="position: fixed; top: 20px; right: 20px; z-index: 1050;"></div>
+
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>Items</th>
+      <th>Delivery Option</th>
+      <th>Status</th>
+      <th>Update Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for order in orders %}
+    <tr data-order-id="{{ order['_id'] }}">
+      <td>
+        <ul>
+          {% for item in order["items"] %}
+          <li>
+            {{ item["quantity"] }} x {{ item["name"] }}
+            {% if item.get("customization") %}
+              ({{ item["customization"] }})
+            {% endif %}
+          </li>
+          {% endfor %}
+        </ul>
+        <p>
+          {% if order["delivery_option"] == "Pickup" %}
+            <strong>Pickup Type:</strong> {{ order.get("pickup_type", "N/A") }}<br>
+            {% if order.get("pickup_type") == "Dining" %}
+              <strong>Table Number:</strong> {{ order.get("table_number", "N/A") }}
+            {% elif order.get("pickup_type") == "Parcel" %}
+              <strong>Parcel</strong>
+            {% endif %}
+          {% elif order["delivery_option"] == "Delivery" %}
+            <strong>Phone Number:</strong> {{ order.get("phone_number", "N/A") }}
+          {% endif %}
+        </p>
+      </td>
+      <td>{{ order["delivery_option"] }}</td>
+      <td class="order-status">{{ order["status"] }}</td>
+      <td>
+        <form class="update-status-form d-flex gap-2" data-order-id="{{ order['_id'] }}">
+          <select name="status" class="form-select form-select-sm">
+            <option {% if order["status"] == 'Pending' %}selected{% endif %}>Pending</option>
+            <option {% if order["status"] == 'Preparing' %}selected{% endif %}>Preparing</option>
+            <option {% if order["status"] == 'Ready' %}selected{% endif %}>Ready</option>
+            <option {% if order["status"] == 'Completed' %}selected{% endif %}>Completed</option>
+          </select>
+          <button type="submit" class="btn btn-sm btn-primary">Update</button>
+        </form>
+      </td>
+    </tr>
+    {% else %}
+    <tr><td colspan="4">No orders found.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const notificationDiv = document.getElementById('notification');
+
+  function showNotification(message, type = 'success') {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.role = 'alert';
+    alertDiv.innerHTML = `
+      ${message}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    `;
+    notificationDiv.appendChild(alertDiv);
+    setTimeout(() => {
+      alertDiv.classList.remove('show');
+      alertDiv.classList.add('hide');
+      alertDiv.remove();
+    }, 4000);
+  }
+
+  document.querySelectorAll('.update-status-form').forEach(form => {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const orderId = form.dataset.orderId;
+      const status = form.querySelector('select[name="status"]').value;
+
+      try {
+        const response = await fetch("{{ url_for('update_order_status') }}", {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token() if csrf_token else "" }}'
+          },
+          body: JSON.stringify({ order_id: orderId, status: status }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          // Update status text in the row
+          const row = form.closest('tr');
+          const statusTd = row.querySelector('.order-status');
+          statusTd.textContent = status;
+
+          showNotification('Order status updated successfully.');
+          
+          // If completed, optionally remove the row from table:
+          if(status === 'Completed'){
+            row.remove();
+          }
+        } else {
+          showNotification(data.error || 'Failed to update status.', 'danger');
+        }
+      } catch (error) {
+        showNotification('Error: ' + error.message, 'danger');
+      }
+    });
+  });
+});
+</script>
+
+{% endblock %}

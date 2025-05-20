@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - My Restaurant{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h1 class="mb-4 text-primary">Admin Dashboard</h1>
+
+  <!-- Menu Items Table -->
+  <div class="card mb-5 shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h4 class="mb-0">Menu Items</h4>
+      <a href="{{ url_for('admin_add_menu') }}" class="btn btn-outline-success btn-sm">
+        <i class="bi bi-plus-circle me-1"></i> Add New Item
+      </a>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Image</th>
+              <th>Name</th>
+              <th>Description</th>
+              <th>Price (₹)</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in menu %}
+            <tr>
+              <td>
+                {% if item.image_url %}
+                  <img src="{{ item.image_url }}" alt="{{ item.name }}" class="rounded" style="height: 60px; width: 80px; object-fit: cover;">
+                {% else %}
+                  <span class="badge bg-secondary">No Image</span>
+                {% endif %}
+              </td>
+              <td class="fw-semibold">{{ item.name }}</td>
+              <td class="text-muted">{{ item.description or '-' }}</td>
+              <td>₹{{ '%.2f' | format(item.price) }}</td>
+              <td>
+                <a href="{{ url_for('admin_edit_menu', item_id=item._id) }}" class="btn btn-sm btn-warning" title="Edit">
+                  <i class="bi bi-pencil-square"></i>
+                </a>
+                <form action="{{ url_for('admin_delete_menu', item_id=item._id) }}" method="POST" style="display:inline;" 
+                      onsubmit="return confirm('Are you sure you want to delete this item?');">
+                  <button type="submit" class="btn btn-sm btn-danger" title="Delete">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </form>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="5" class="text-center text-muted">No menu items available.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add / Update Form -->
+  <div class="card shadow-sm">
+    <div class="card-header">
+      <h5 class="mb-0">Add / Update Menu Item</h5>
+    </div>
+    <div class="card-body">
+      <form action="{{ url_for('admin_add_menu') }}" method="POST" class="row g-3 mb-4">
+  <div class="col-md-3">
+    <input type="text" class="form-control" name="name" placeholder="Item Name" required>
+  </div>
+  <div class="col-md-2">
+    <input type="number" class="form-control" name="price" placeholder="Price" step="0.01" min="0.01" required>
+  </div>
+  <div class="col-md-4">
+    <input type="text" class="form-control" name="description" placeholder="Description (optional)">
+  </div>
+  <div class="col-md-3">
+    <input type="url" class="form-control" name="image_url" placeholder="Image URL (optional)">
+  </div>
+
+  <div class="col-md-3">
+    <select class="form-select" name="category" required>
+      <option value="" disabled selected>Select Category</option>
+      <option value="Appetizer">Appetizer</option>
+      <option value="Main Course">Main Course</option>
+      <option value="Vegan">Vegan</option>
+      <option value="Beverages">Beverages</option>
+    </select>
+  </div>
+
+<div class="col-md-2">
+  <input type="number" class="form-control" name="popularity" placeholder="Popularity (e.g., 5)" step="1" min="5" required>
+</div>
+
+  <div class="col-md-12">
+    <button type="submit" class="btn btn-success">Add / Update</button>
+  </div>
+</form>
+    </div>
+  </div>
+</div>
+{% endblock %}

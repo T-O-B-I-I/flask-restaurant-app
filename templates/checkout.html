@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Checkout - Food Ordering</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    function onDeliveryOptionChange() {
+      const delivery = document.getElementById('delivery_option').value;
+      document.getElementById('pickup_fields').style.display = delivery === 'Pickup' ? 'block' : 'none';
+      document.getElementById('delivery_fields').style.display = delivery === 'Delivery' ? 'block' : 'none';
+    }
+
+    function onPickupTypeChange() {
+      const pickupType = document.querySelector('input[name="pickup_type"]:checked')?.value;
+      document.getElementById('dining_table').style.display = pickupType === 'Dining' ? 'block' : 'none';
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      onDeliveryOptionChange();
+      onPickupTypeChange();
+    });
+  </script>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+
+  <nav class="bg-white shadow p-4 flex justify-between items-center">
+    <h1 class="text-xl font-bold">Checkout</h1>
+    <a href="{{ url_for('view_cart') }}" class="btn px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">Cart</a>
+  </nav>
+
+  <main class="container mx-auto p-6 max-w-lg bg-white rounded shadow mt-6">
+    <h2 class="text-lg font-semibold mb-4">Order Summary</h2>
+    <ul class="mb-4">
+      {% for item in cart.values() %}
+        <li>{{ item.quantity }} x {{ item.name }} - ₹{{ "%.2f"|format(item.price * item.quantity) }}</li>
+      {% endfor %}
+    </ul>
+    <p class="font-bold mb-6">Total: ₹{{ "%.2f"|format(total) }}</p>
+
+    <form method="POST" action="{{ url_for('checkout') }}">
+      <label class="block mb-2 font-semibold" for="email">Email (for updates):</label>
+      <input type="email" name="email" id="email" required class="w-full border rounded px-3 py-2 mb-4" />
+
+      <label class="block mb-2 font-semibold" for="delivery_option">Delivery Option:</label>
+      <select name="delivery_option" id="delivery_option" onchange="onDeliveryOptionChange()" class="w-full border rounded px-3 py-2 mb-4" required>
+        <option value="Pickup">Pickup</option>
+        <option value="Delivery">Delivery</option>
+      </select>
+
+      <div id="pickup_fields" class="mb-4">
+        <label class="block mb-2 font-semibold">Pickup Type:</label>
+        <label class="inline-flex items-center mr-4">
+          <input type="radio" name="pickup_type" value="Parcel" onchange="onPickupTypeChange()" checked />
+          <span class="ml-2">Parcel</span>
+        </label>
+        <label class="inline-flex items-center">
+          <input type="radio" name="pickup_type" value="Dining" onchange="onPickupTypeChange()" />
+          <span class="ml-2">Dining</span>
+        </label>
+
+        <div id="dining_table" class="mt-4" style="display:none;">
+          <label for="table_number" class="block mb-2 font-semibold">Table Number:</label>
+          <input type="text" name="table_number" id="table_number" class="w-full border rounded px-3 py-2" />
+        </div>
+      </div>
+
+      <div id="delivery_fields" class="mb-4" style="display:none;">
+        <label for="phone_number" class="block mb-2 font-semibold">Phone Number:</label>
+        <input type="tel" name="phone_number" id="phone_number" class="w-full border rounded px-3 py-2" />
+      </div>
+
+      <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 w-full">Place Order</button>
+    </form>
+  </main>
+
+</body>
+</html>

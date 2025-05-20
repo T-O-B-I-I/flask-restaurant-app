@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Menu - My Restaurant{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+  <h2 class="mb-4 text-center text-primary">Our Menu</h2>
+
+  <!-- Search, Filter & Sort Form -->
+  <form method="GET" action="{{ url_for('index') }}" class="mb-4 d-flex flex-wrap gap-2 align-items-center justify-content-center">
+
+    <input type="search" name="search" class="form-control" placeholder="Search menu..."
+           value="{{ request.args.get('search', '') }}" style="max-width: 300px;">
+
+    <select name="category" class="form-select" style="max-width: 180px;">
+      <option value="">All Categories</option>
+      <option value="Appetizer" {% if request.args.get('category') == 'Appetizer' %}selected{% endif %}>Appetizer</option>
+      <option value="Main Course" {% if request.args.get('category') == 'Main Course' %}selected{% endif %}>Main Course</option>
+      <option value="Vegan" {% if request.args.get('category') == 'Vegan' %}selected{% endif %}>Vegan</option>
+      <option value="Beverages" {% if request.args.get('category') == 'Beverages' %}selected{% endif %}>Beverages</option>
+    </select>
+
+    <select name="sort" class="form-select" style="max-width: 180px;">
+      <option value="">Sort By</option>
+      <option value="price_asc" {% if request.args.get('sort') == 'price_asc' %}selected{% endif %}>Price: Low to High</option>
+      <option value="price_desc" {% if request.args.get('sort') == 'price_desc' %}selected{% endif %}>Price: High to Low</option>
+      <option value="popularity_desc" {% if request.args.get('sort') == 'popularity_desc' %}selected{% endif %}>Popularity</option>
+    </select>
+
+    <button type="submit" class="btn btn-primary">Apply</button>
+  </form>
+
+  <!-- Menu Items -->
+  {% if menu %}
+    <div class="row row-cols-1 row-cols-md-2 g-3">
+      {% for item in menu %}
+        <div class="col">
+          <div class="card h-100 shadow-sm d-flex flex-row align-items-center p-2">
+            {% if item.image_url %}
+              <img src="{{ item.image_url }}" alt="{{ item.name }}" class="rounded" style="width: 100px; height: 80px; object-fit: cover; flex-shrink: 0;">
+            {% else %}
+              <div class="bg-light text-muted d-flex justify-content-center align-items-center rounded" style="width: 100px; height: 80px; flex-shrink: 0;">
+                No Image
+              </div>
+            {% endif %}
+
+            <div class="ms-3 flex-grow-1">
+              <h5 class="mb-1">{{ item.name }}</h5>
+              <p class="mb-1 text-muted small">{{ item.description or '' }}</p>
+              <span class="fw-bold text-success">₹{{ '%.2f'|format(item.price) }}</span>
+              <p class="mb-1"><small>Category: {{ item.category or 'N/A' }}</small></p>
+              <p class="mb-1"><small>Popularity: {{ item.popularity or 0 }}</small></p>
+            </div>
+
+            <form method="POST" action="{{ url_for('add_to_cart', item_id=item._id) }}" class="d-flex align-items-center ms-3" style="min-width: 120px;">
+              <input type="number" name="quantity" value="1" min="1" class="form-control form-control-sm me-2" style="width: 60px;" required>
+              <button type="submit" class="btn btn-sm btn-primary">Add</button>
+            </form>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-center text-muted">No menu items available.</p>
+  {% endif %}
+</div>
+{% endblock %}

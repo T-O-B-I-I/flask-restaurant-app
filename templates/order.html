@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Order - My Restaurant{% endblock %}
+
+{% block content %}
+{% if item %}
+<h2>Order: {{ item.name }}</h2>
+<form method="POST">
+  <div class="mb-3">
+    <label for="quantity" class="form-label">Quantity</label>
+    <input type="number" min="1" class="form-control" id="quantity" name="quantity" value="1" required>
+  </div>
+  <div class="mb-3">
+    <label for="customization" class="form-label">Customization (optional)</label>
+    <textarea class="form-control" id="customization" name="customization" rows="3"></textarea>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Delivery Option</label><br/>
+    <div class="form-check form-check-inline">
+      <input class="form-check-input" type="radio" name="delivery_option" id="pickup" value="Pickup" checked>
+      <label class="form-check-label" for="pickup">Pickup</label>
+    </div>
+    <div class="form-check form-check-inline">
+      <input class="form-check-input" type="radio" name="delivery_option" id="delivery" value="Delivery">
+      <label class="form-check-label" for="delivery">Delivery</label>
+    </div>
+  </div>
+  <input type="hidden" name="item_id" value="{{ item._id }}">
+  <button type="submit" class="btn btn-success">Place Order</button>
+  <a href="{{ url_for('index') }}" class="btn btn-secondary">Back to Menu</a>
+</form>
+{% else %}
+<p>Invalid item selected.</p>
+<a href="{{ url_for('index') }}">Back to Menu</a>
+{% endif %}
+{% endblock %}
