@@ -1,3 +1,6 @@
 Flask
+Flask-Mail
 pymongo
+dnspython
 python-dotenv
+Werkzeug
